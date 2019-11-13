@@ -10,11 +10,11 @@ import pdb
 # Init the database for query
 #
 def QueryDataBaseInit():
-    handler = InfluxDBClient (host='10.1.9.135',
+    handler = InfluxDBClient (host='10.200.32.12',
                               port=8086,
                               username='mimos',
                               password='mimosian',
-                              database="kami_demo");
+                              database="kami");
     return handler;
 
 #
@@ -23,8 +23,10 @@ def QueryDataBaseInit():
 def QueryDatabase(handler, queryItem):
     points = [];
     for x in range(4):
-        queryStatement = ('SELECT %s FROM %s '
-                          'WHERE time > \'%s\' AND time < \'%s\'' %(queryItem['item'], queryItem['tag'][x], queryItem['date'][0], queryItem['date'][1]));
+        queryStatement = ('SELECT sum(%s) FROM %s '
+                          'WHERE time > \'%s\' AND time < \'%s\' GROUP BY time(30m) tz(\'Asia/Singapore\')'
+                          %(queryItem['item'], queryItem['tag'][x], queryItem['date'][0], queryItem['date'][1]));
+
         result = handler.query(queryStatement);
         points.append(result.get_points(queryItem['tag'][x]));
         print('Query now# %s' %queryItem['tag'][x]);
@@ -46,6 +48,23 @@ def SaveQueryDataInExcel(xData, yData):
     wb.save('query.xls');
 
 #
+# Use matplot to plot the query data
+#
+def MatplotQueryData(time, data):
+    # plot the data
+    colors = ['r', 'b', 'c', 'y'];
+    for x in range(len(points)):
+        pltproperty = plt.plot(time[x], data[x], '-x', label=queryItem['tag'][x]);
+        plt.setp(pltproperty, 'color', colors[x]);
+    plt.grid(True);
+    plt.xlabel('time');
+    plt.ylabel('KWH');
+    plt.title('Maximum Demand Analysis');
+    plt.legend();
+    plt.show();
+
+
+#
 # Main program start
 #
 if __name__ == "__main__":
@@ -56,7 +75,7 @@ if __name__ == "__main__":
     # Query setup 
     queryItem = {'item':"deltaPower", 
          'tag':["kami_machine_Hammer_Mill1_reading", "kami_machine_Hammer_Mill2_reading", "kami_machine_Pellet_Mill1_reading", "kami_machine_Pellet_Mill2_reading"],
-         'date':['2019-11-06T00:00:00Z','2019-11-06T23:59:00Z']};
+         'date':['2019-11-06T16:00:00Z','2019-11-07T15:59:00Z']};
     
     # Query the database
     points = QueryDatabase(handler, queryItem);
@@ -73,7 +92,7 @@ if __name__ == "__main__":
             var = j['time'];
             var1 = var[11:16];
             hh, mm = map(int,var1.split(':'));
-            temp1.append(j['deltaPower']);
+            temp1.append(j['sum']);
             temp2.append((hh * 100) + mm);
             temp3.append(var);
         data.append(temp1);
@@ -87,14 +106,6 @@ if __name__ == "__main__":
     SaveQueryDataInExcel(dbtime, data);
 
     # plot the data
-    colors = ['r', 'b', 'c', 'y'];
-    for x in range(len(points)):
-        pltproperty = plt.plot(time[x], data[x], '-x', label=queryItem['tag'][x]);
-        plt.setp(pltproperty, 'color', colors[x]);
-    plt.grid(True);
-    plt.xlabel('time');
-    plt.ylabel('KWH');
-    plt.title('Maximum Demand Analysis');
-    plt.legend();
-    plt.show();
+    MatplotQueryData(time, data);
+
 
