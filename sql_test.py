@@ -51,16 +51,36 @@ def SaveQueryDataInExcel(xData, yData):
 # Use matplot to plot the query data
 #
 def MatplotQueryData(time, data):
-    # plot the data
-    colors = ['r', 'b', 'c', 'y'];
+
+    # split the data set by 24 hours
+    xData = [];
+    yData = [];
+    temp1 = [];
+    temp2 = [];
     for x in range(len(points)):
-        pltproperty = plt.plot(time[x], data[x], '-x', label=queryItem['tag'][x]);
-        plt.setp(pltproperty, 'color', colors[x]);
-    plt.grid(True);
-    plt.xlabel('time');
-    plt.ylabel('KWH');
-    plt.title('Maximum Demand Analysis');
-    plt.legend();
+        for i in range(int(len(time[0]) / 48)):
+            start = i * 48;
+            end = start + 48;
+            temp1.append(time[x][start:end]);
+            temp2.append(data[x][start:end]);
+        xData.append(temp1);
+        yData.append(temp2);
+        temp1 = [];
+        temp2 = [];
+
+    # plot the data
+    cmap = plt.get_cmap('gnuplot')
+    colors = [cmap(i) for i in np.linspace(0, 1, len(xData[0]))]
+    for y in range(4):
+        plt.figure();
+        for x in range(len(xData[y])):
+            pltproperty = plt.plot(xData[y][x], yData[y][x], '-x', label='day' +str(x + 1));
+            plt.setp(pltproperty, 'color', colors[x]);
+        plt.grid(True);
+        plt.xlabel('time');
+        plt.ylabel('KWH');
+        plt.title(queryItem['tag'][y]);
+        plt.legend();
     plt.show();
 
 
@@ -75,7 +95,7 @@ if __name__ == "__main__":
     # Query setup 
     queryItem = {'item':"deltaPower", 
          'tag':["kami_machine_Hammer_Mill1_reading", "kami_machine_Hammer_Mill2_reading", "kami_machine_Pellet_Mill1_reading", "kami_machine_Pellet_Mill2_reading"],
-         'date':['2019-11-06T16:00:00Z','2019-11-07T15:59:00Z']};
+         'date':['2019-10-20T16:00:00Z','2019-11-12T15:59:00Z']};
     
     # Query the database
     points = QueryDatabase(handler, queryItem);
