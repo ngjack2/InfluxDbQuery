@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 import os
 import pdb
-import time
-import ctypes
 import xlwt
 import math
 import itertools
@@ -12,28 +10,37 @@ import numpy as np
 from multiprocessing import Process
 from xlwt import Workbook
 
-
+#
+# Rotate the list to left by n
+#
 def RotateList(data, n):
     return data[n:] + data[:n];
 
-def ShuffleDataAndCalculate(data, MdaThreshold):
-    temp = data;
+#
+# Shuffle the data and calcuate the optimun MDA
+#
+def ShuffleDataForMda(data, MdaThreshold):
+
     threshold = MdaThreshold;
+    machine1 = data[0][0];
+    machine2 = data[1][0];
+    machine3 = data[2][0];
+    machine4 = data[3][0];
 
-    count = 0;
-    while(1):
-        temp[0][0] = RotateList(data[0][0], randint(0, 4));
-        temp[1][0] = RotateList(data[1][0], randint(0, 4));
-        temp[2][0] = RotateList(data[2][0], randint(0, 4));
-        temp[3][0] = RotateList(data[3][0], randint(0, 4));
-
-        count += 1;
-        var = np.add(np.add(temp[0][0], temp[1][0]), np.add(temp[2][0], temp[3][0]));
+    permutate = list(itertools.permutations([0,1,2,3,4], 4));
+    for x in permutate:
+  
+        var = np.add(np.add(machine1, machine2), np.add(machine3, machine4));
         totalPower = var.tolist();
-        if (max(totalPower) < threshold):
-            threshold = max(totalPower);
-            data = temp;
 
-        if count == 200:
-            break;
-    return data;
+        if (max(totalPower) < threshold):
+            print(x);
+            threshold = max(totalPower);
+            bestData = [machine1, machine2, machine3, machine4];
+
+        machine1 = tuple(RotateList(data[0][0], x[0]));
+        machine2 = tuple(RotateList(data[1][0], x[1]));
+        machine3 = tuple(RotateList(data[2][0], x[2]));
+        machine4 = tuple(RotateList(data[3][0], x[3]));
+
+    return bestData;
