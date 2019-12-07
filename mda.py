@@ -38,11 +38,12 @@ def ShuffleDataForMda(data, MdaThreshold):
             print(x);
             threshold = max(totalPower);
             bestData = [machine1, machine2, machine3, machine4];
-            count += 1;
+            
             # initial MDA lower than threshold don't need any improvement
-            if (count == 1)
+            if (count == 0):
                 return bestData;
 
+        count += 1;
         machine1 = tuple(RotateList(data[0][0], x[0]));
         machine2 = tuple(RotateList(data[1][0], x[1]));
         machine3 = tuple(RotateList(data[2][0], x[2]));
