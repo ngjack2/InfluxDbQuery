@@ -23,6 +23,12 @@ def QueryDataBaseInit(queryItem):
     return handler;
 
 #
+# Close the http connection created
+#
+def CloseConnection(connection):
+    InfluxDBClient.close(connection);
+
+#
 # Query the item from list
 ##result = connection.query('SELECT "deltaPower" FROM
 ##"kami_machine_Hammer_Mill1_reading" GROUP BY * ORDER BY DESC LIMIT 3');
@@ -73,7 +79,7 @@ def SaveQueryDataInExcel(points, queryItem):
             sheet[i].write(j, 1, data[i][j]);
 
     wb.save('query.xls');
-    return (rtime, data);
+    return (dbtime, rtime, data);
 
 #
 # Extract data in days series for plotting purpose

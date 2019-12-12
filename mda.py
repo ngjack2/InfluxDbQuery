@@ -29,6 +29,7 @@ def ShuffleDataForMda(data, MdaThreshold):
     
     count = 0;
     permutate = list(itertools.permutations([0,1,2,3,4], 4));
+    bestData = [machine1, machine2, machine3, machine4];
     for x in permutate:
   
         var = np.add(np.add(machine1, machine2), np.add(machine3, machine4));

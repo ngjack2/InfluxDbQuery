@@ -5,6 +5,8 @@ import time
 import ctypes
 import xlwt
 import math
+import json
+import datetime
 
 # custome module
 import mda
@@ -157,32 +159,38 @@ def MatplotQueryData(xData, yData, modData, mda_thres, queryItem):
 #
 # Main program start
 #
-if __name__ == "__main__":
+def main(argv1, argv2):
 
     # User Guide to enter date
     #ctypes.windll.user32.MessageBoxW(0, "Please key in the date follow the format given " + queryItem['date'][0], 'Warning', 1);
     #time.sleep(3);
    
-   # Check any user input
-    if len(os.sys.argv) > 1:
-        queryItem['date'][0] = os.sys.argv[1];
-        queryItem['date'][1] = os.sys.argv[2];
-    else:
-        print("Continue with default date in script");
-
     # Query setup
-    queryItem = {'hostIp':'10.200.32.12', 'hostPort': 8086, 'user':'mimos', 'passwrd':'mimosian', 'db':"kami", 'item':"deltaPower", 
-         'tag':["kami_machine_Hammer_Mill1_reading", "kami_machine_Hammer_Mill2_reading", "kami_machine_Pellet_Mill1_reading", "kami_machine_Pellet_Mill2_reading"],
-         'date':['2019-10-02T16:00:00Z','2019-10-03T15:59:00Z']};
+    #queryItem = {'hostIp':'10.200.32.12', 'hostPort': 8086, 'user':'mimos', 'passwrd':'mimosian', 'db':"kami", 'item':"deltaPower", 
+    #     'tag':["kami_machine_Hammer_Mill1_reading", "kami_machine_Hammer_Mill2_reading", "kami_machine_Pellet_Mill1_reading", "kami_machine_Pellet_Mill2_reading"],
+    #     'date':['2019-10-02T16:00:00Z','2019-10-03T15:59:00Z']};
+    with open('kami_prod.json') as pFile:
+        queryItem = json.load(pFile);
+    # log down the process
+    pFile = open("mda.log","a+");
+
+   # Check any user input
+    queryItem['date'][0] = argv1;
+    queryItem['date'][1] = argv2;
+    pFile.write("[%s]: Query input %s %s\n" %(time.strftime('%Y-%m-%dT%H:%M:%SZ'), queryItem['date'][0], queryItem['date'][1]));
+    pFile.close();
 
     # Init database handler
-    handler = influxDb.QueryDataBaseInit(queryItem);
+    readHandler = influxDb.QueryDataBaseInit(queryItem);
 
     # Query the database
-    points = influxDb.QueryDatabase(handler, queryItem);
+    points = influxDb.QueryDatabase(readHandler, queryItem);
 
+    # Close the http connection
+    influxDb.CloseConnection(readHandler);
+    
     # save it to excel
-    rtime, data = influxDb.SaveQueryDataInExcel(points, queryItem);
+    dbtime, rtime, data = influxDb.SaveQueryDataInExcel(points, queryItem);
 
     # Extract data accordingly
     xData, yData, avgPowerPerMachine, totalPowerPerMachine = influxDb.ExtractData(rtime, data, points);
@@ -195,8 +203,35 @@ if __name__ == "__main__":
     modData = mda.ShuffleDataForMda(yData, mdaThreshold);
 
     # plot the data
-    MatplotQueryData(xData, yData, modData, mdaThreshold, queryItem);
+    #MatplotQueryData(xData, yData, modData, mdaThreshold, queryItem);
 
+    # Init MDA database handler
+    #test= { 'measurement':"kami_machine_Hammer_Mill1_reading", 'time':'2019-10-02T16:00:00Z', 'field': { "deltaPower":127 } };
+    with open('kami_mda.json') as pFile:
+        writeItem = json.load(pFile);
 
-    
+    # Init database handler
+    writeHandler = influxDb.QueryDataBaseInit(writeItem);
 
+    for i in range(len(modData)):
+        for j in range(len(modData[0])):
+            wData = [{'measurement': writeItem['tag'][i], 'time':dbtime[i][j], 'fields': {'systime': time.strftime('%Y-%m-%dT%H:%M:%SZ'), 'deltaPower': float(modData[i][j])}}];
+            writeHandler.write_points(wData);
+
+    # Close the http connection
+    influxDb.CloseConnection(writeHandler);
+
+if __name__ == "__main__":
+
+    # format time for one day query
+    queryHourStart = 'T16:00:00Z'
+    queryHourEnd = 'T15:59:00Z';
+
+    # get today calendar format
+    yesterday = datetime.date.today() - datetime.timedelta(days=1);
+    today = datetime.date.today();
+    startQuery = yesterday.strftime("%Y-%m-%d") + queryHourStart;
+    endQuery = today.strftime("%Y-%m-%d") + queryHourEnd;
+   
+    # run query, MDA and write back to influxDB
+    main(startQuery, endQuery);
