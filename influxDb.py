@@ -46,7 +46,7 @@ def QueryDatabase(handler, queryItem):
 #
 # Save all query data into excel
 #
-def SaveQueryDataInExcel(points, queryItem):
+def SaveQueryDataInExcel(points, queryItem, save_excel):
     # extract info out from query
     data = [];
     rtime = [];
@@ -69,16 +69,19 @@ def SaveQueryDataInExcel(points, queryItem):
         temp2 = [];
         temp3 = [];
 
-    sheet = [];
-    wb = Workbook();
-    for i in range(len(dbtime)):
-        cmp, name, machine, type, process = map(str,queryItem['tag'][i].split('_'));
-        sheet.append(wb.add_sheet(machine + type));
-        for j in range(len(dbtime[i])):
-            sheet[i].write(j, 0, dbtime[i][j]);
-            sheet[i].write(j, 1, data[i][j]);
+    # Save when requested
+    if save_excel == True:
+        sheet = [];
+        wb = Workbook();
+        for i in range(len(dbtime)):
+            cmp, name, machine, type, process = map(str,queryItem['tag'][i].split('_'));
+            sheet.append(wb.add_sheet(machine + type));
+            for j in range(len(dbtime[i])):
+                sheet[i].write(j, 0, dbtime[i][j]);
+                sheet[i].write(j, 1, data[i][j]);
 
-    wb.save('query.xls');
+        wb.save('query.xls');
+
     return (dbtime, rtime, data);
 
 #
@@ -102,7 +105,10 @@ def ExtractData(rtime, data, points):
             temp2.append(data[x][start:end]);
             a = data[x][start:end];
             # compute average power usage per hour per day
-            temp3.append(sum(a) / (48 - temp2[0].count(0)) / 2);
+            if sum(a) == 0:
+                temp3.append(0);
+            else:
+                temp3.append(sum(a) / (48 - temp2[0].count(0)) / 2);
             temp4.append(sum(a));
         xData.append(temp1);
         yData.append(temp2);

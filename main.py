@@ -10,7 +10,8 @@ import datetime
 
 # custome module
 import mda
-import influxDb 
+import influxDb
+import log
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -172,54 +173,64 @@ def main(argv1, argv2):
     with open('kami_prod.json') as pFile:
         queryItem = json.load(pFile);
     # log down the process
-    pFile = open("mda.log","a+");
+    obj = log.Log();
 
    # Check any user input
     queryItem['date'][0] = argv1;
     queryItem['date'][1] = argv2;
-    pFile.write("[%s]: Query input %s %s\n" %(time.strftime('%Y-%m-%dT%H:%M:%SZ'), queryItem['date'][0], queryItem['date'][1]));
-    pFile.close();
+    obj.WriteBuffer("[%s]: Query input %s %s\n" %(time.strftime('%Y-%m-%dT%H:%M:%SZ'), queryItem['date'][0], queryItem['date'][1]));
 
-    # Init database handler
-    readHandler = influxDb.QueryDataBaseInit(queryItem);
+    try:
+        # Init database handler
+        readHandler = influxDb.QueryDataBaseInit(queryItem);
 
-    # Query the database
-    points = influxDb.QueryDatabase(readHandler, queryItem);
+        # Query the database
+        points = influxDb.QueryDatabase(readHandler, queryItem);
+        obj.WriteBuffer("[%s]: Query start\n" %(time.strftime('%Y-%m-%dT%H:%M:%SZ')));
 
-    # Close the http connection
-    influxDb.CloseConnection(readHandler);
-    
-    # save it to excel
-    dbtime, rtime, data = influxDb.SaveQueryDataInExcel(points, queryItem);
+        # Close the http connection
+        influxDb.CloseConnection(readHandler);
+        obj.WriteBuffer("[%s]: Connection close\n" %(time.strftime('%Y-%m-%dT%H:%M:%SZ')));
 
-    # Extract data accordingly
-    xData, yData, avgPowerPerMachine, totalPowerPerMachine = influxDb.ExtractData(rtime, data, points);
+        # save it to excel
+        dbtime, rtime, data = influxDb.SaveQueryDataInExcel(points, queryItem, False);
 
-    # Change the MDA demand base on user request
-    mdaThreshold = 1000000;
-    #modified_total_power = MdaAnalysisDistributePower(xData, yData, mdaThreshold);
+        # Extract data accordingly
+        xData, yData, avgPowerPerMachine, totalPowerPerMachine = influxDb.ExtractData(rtime, data, points);
 
-    # method 2: Calculate minimum MDA usage per day
-    modData = mda.ShuffleDataForMda(yData, mdaThreshold);
+        # Change the MDA demand base on user request
+        mdaThreshold = 1000000;
+        #modified_total_power = MdaAnalysisDistributePower(xData, yData, mdaThreshold);
 
-    # plot the data
-    #MatplotQueryData(xData, yData, modData, mdaThreshold, queryItem);
+        # method 2: Calculate minimum MDA usage per day
+        modData, count = mda.ShuffleDataForMda(yData, mdaThreshold);
+        obj.WriteBuffer("[%s]: ShuffleDataForMda %s\n" %(time.strftime('%Y-%m-%dT%H:%M:%SZ'), count));
 
-    # Init MDA database handler
-    #test= { 'measurement':"kami_machine_Hammer_Mill1_reading", 'time':'2019-10-02T16:00:00Z', 'field': { "deltaPower":127 } };
-    with open('kami_mda.json') as pFile:
-        writeItem = json.load(pFile);
+        # plot the data
+        #MatplotQueryData(xData, yData, modData, mdaThreshold, queryItem);
 
-    # Init database handler
-    writeHandler = influxDb.QueryDataBaseInit(writeItem);
+        # Init MDA database handler
+        #test= { 'measurement':"kami_machine_Hammer_Mill1_reading", 'time':'2019-10-02T16:00:00Z', 'field': { "deltaPower":127 } };
+        with open('kami_mda.json') as pFile:
+            writeItem = json.load(pFile);
 
-    for i in range(len(modData)):
-        for j in range(len(modData[0])):
-            wData = [{'measurement': writeItem['tag'][i], 'time':dbtime[i][j], 'fields': {'systime': time.strftime('%Y-%m-%dT%H:%M:%SZ'), 'deltaPower': float(modData[i][j])}}];
-            writeHandler.write_points(wData);
+        # Init database handler
+        writeHandler = influxDb.QueryDataBaseInit(writeItem);
 
-    # Close the http connection
-    influxDb.CloseConnection(writeHandler);
+        for i in range(len(modData)):
+            for j in range(len(modData[0])):
+                wData = [{'measurement': writeItem['tag'][i], 'time':dbtime[i][j], 'fields': {'systime': time.strftime('%Y-%m-%dT%H:%M:%SZ'), 'deltaPower': float(modData[i][j])}}];
+                writeHandler.write_points(wData);
+
+        # Close the http connection
+        influxDb.CloseConnection(writeHandler);
+
+    except Exception as e:
+        exc_type, exc_value, exc_traceback = os.sys.exc_info();
+        obj.WriteBuffer("[%s]: error %s, file: %s, line: %s\n" 
+                        %(time.strftime('%Y-%m-%dT%H:%M:%SZ'), type(e).__name__, exc_traceback.tb_frame.f_code.co_filename, exc_traceback.tb_lineno));
+    # Close the file handler
+    obj.Close();
 
 if __name__ == "__main__":
 
