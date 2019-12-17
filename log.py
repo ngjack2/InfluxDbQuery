@@ -10,7 +10,9 @@ import math
 #
 class Log():
     def __init__(self):
-        self.pFile = open("mda.log","a+");
+        path = os.path.abspath(os.path.dirname(os.sys.argv[0])) + '/mda.log';
+        print(path);
+        self.pFile = open(path,"a+");
 
     def WriteBuffer(self, string):
         self.pFile.write(string);
