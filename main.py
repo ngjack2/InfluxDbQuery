@@ -165,12 +165,15 @@ def main(argv1, argv2):
     # User Guide to enter date
     #ctypes.windll.user32.MessageBoxW(0, "Please key in the date follow the format given " + queryItem['date'][0], 'Warning', 1);
     #time.sleep(3);
-   
+    path = os.path.abspath(os.path.dirname(os.sys.argv[0]));
+
     # Query setup
     #queryItem = {'hostIp':'10.200.32.12', 'hostPort': 8086, 'user':'mimos', 'passwrd':'mimosian', 'db':"kami", 'item':"deltaPower", 
     #     'tag':["kami_machine_Hammer_Mill1_reading", "kami_machine_Hammer_Mill2_reading", "kami_machine_Pellet_Mill1_reading", "kami_machine_Pellet_Mill2_reading"],
     #     'date':['2019-10-02T16:00:00Z','2019-10-03T15:59:00Z']};
-    with open('kami_prod.json') as pFile:
+    db_param_path = path + '/kami_prod.json';
+    print(path);
+    with open(db_param_path) as pFile:
         queryItem = json.load(pFile);
     # log down the process
     obj = log.Log();
@@ -211,7 +214,8 @@ def main(argv1, argv2):
 
         # Init MDA database handler
         #test= { 'measurement':"kami_machine_Hammer_Mill1_reading", 'time':'2019-10-02T16:00:00Z', 'field': { "deltaPower":127 } };
-        with open('kami_mda.json') as pFile:
+        db_param_path = path + '/kami_mda.json';
+        with open(db_param_path) as pFile:
             writeItem = json.load(pFile);
 
         # Init database handler
