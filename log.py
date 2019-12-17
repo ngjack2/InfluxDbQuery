@@ -11,11 +11,11 @@ import math
 class Log():
     def __init__(self):
         path = os.path.abspath(os.path.dirname(os.sys.argv[0])) + '/mda.log';
-        print(path);
         self.pFile = open(path,"a+");
 
     def WriteBuffer(self, string):
-        self.pFile.write(string);
+        buffer = ("[%s]: " %(time.strftime('%Y-%m-%dT%H:%M:%SZ')));
+        self.pFile.write(buffer + string);
 
     def Close(self):
         self.pFile.close();

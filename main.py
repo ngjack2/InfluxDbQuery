@@ -172,7 +172,7 @@ def main(argv1, argv2):
     #     'tag':["kami_machine_Hammer_Mill1_reading", "kami_machine_Hammer_Mill2_reading", "kami_machine_Pellet_Mill1_reading", "kami_machine_Pellet_Mill2_reading"],
     #     'date':['2019-10-02T16:00:00Z','2019-10-03T15:59:00Z']};
     db_param_path = path + '/kami_prod.json';
-    print(path);
+    
     with open(db_param_path) as pFile:
         queryItem = json.load(pFile);
     # log down the process
@@ -181,7 +181,7 @@ def main(argv1, argv2):
    # Check any user input
     queryItem['date'][0] = argv1;
     queryItem['date'][1] = argv2;
-    obj.WriteBuffer("[%s]: Query input %s %s\n" %(time.strftime('%Y-%m-%dT%H:%M:%SZ'), queryItem['date'][0], queryItem['date'][1]));
+    obj.WriteBuffer("Query input %s %s\n" %(queryItem['date'][0], queryItem['date'][1]));
 
     try:
         # Init database handler
@@ -189,11 +189,11 @@ def main(argv1, argv2):
 
         # Query the database
         points = influxDb.QueryDatabase(readHandler, queryItem);
-        obj.WriteBuffer("[%s]: Query start\n" %(time.strftime('%Y-%m-%dT%H:%M:%SZ')));
+        obj.WriteBuffer("Query start\n");
 
         # Close the http connection
         influxDb.CloseConnection(readHandler);
-        obj.WriteBuffer("[%s]: Connection close\n" %(time.strftime('%Y-%m-%dT%H:%M:%SZ')));
+        obj.WriteBuffer("Connection close\n");
 
         # save it to excel
         dbtime, rtime, data = influxDb.SaveQueryDataInExcel(points, queryItem, False);
@@ -207,7 +207,7 @@ def main(argv1, argv2):
 
         # method 2: Calculate minimum MDA usage per day
         modData, count = mda.ShuffleDataForMda(yData, mdaThreshold);
-        obj.WriteBuffer("[%s]: ShuffleDataForMda %s\n" %(time.strftime('%Y-%m-%dT%H:%M:%SZ'), count));
+        obj.WriteBuffer("ShuffleDataForMda %s\n" %count);
 
         # plot the data
         #MatplotQueryData(xData, yData, modData, mdaThreshold, queryItem);
@@ -231,8 +231,8 @@ def main(argv1, argv2):
 
     except Exception as e:
         exc_type, exc_value, exc_traceback = os.sys.exc_info();
-        obj.WriteBuffer("[%s]: error %s, file: %s, line: %s\n" 
-                        %(time.strftime('%Y-%m-%dT%H:%M:%SZ'), type(e).__name__, exc_traceback.tb_frame.f_code.co_filename, exc_traceback.tb_lineno));
+        obj.WriteBuffer("error %s, file: %s, line: %s\n" 
+                        %(type(e).__name__, exc_traceback.tb_frame.f_code.co_filename, exc_traceback.tb_lineno));
     # Close the file handler
     obj.Close();
 
