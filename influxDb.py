@@ -6,6 +6,7 @@ import ctypes
 import xlwt
 import math
 
+
 import numpy as np
 
 from xlwt import Workbook
@@ -18,13 +19,33 @@ def QueryDataBaseInit(queryItem):
     handler = InfluxDBClient(host = queryItem['hostIp'],
                               port = queryItem['hostPort'],
                               username = queryItem['user'],
-                              password = queryItem['passwrd'],
-                              database = queryItem['db']);
+                              password = queryItem['passwrd']);
     return handler;
 
 #
-# Close the http connection created
+# Check database existance and create database
 #
+def CheckDataBase(handler, queryItem, create_db, obj):
+
+    db_list = handler.get_list_database();
+   
+    for db in db_list:
+        if queryItem['db'] == db['name']:
+            handler.switch_database(db['name']);
+            obj.WriteBuffer("Log %s database\n" %db['name']);
+            return handler;
+
+    # Create the MDA database if can't find it
+    if create_db == True:
+        handler.create_database(queryItem['db']);
+        handler.switch_database(queryItem['db']);
+        obj.WriteBuffer("Create %s database\n" %queryItem['db']); 
+
+    return (handler);
+
+#
+# Close the http connection created
+#ty
 def CloseConnection(connection):
     InfluxDBClient.close(connection);
 

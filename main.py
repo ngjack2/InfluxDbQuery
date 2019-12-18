@@ -187,6 +187,9 @@ def main(argv1, argv2):
         # Init database handler
         readHandler = influxDb.QueryDataBaseInit(queryItem);
 
+        # Check database existance for MDA
+        readHandler = influxDb.CheckDataBase(readHandler, queryItem, False, obj);
+
         # Query the database
         points = influxDb.QueryDatabase(readHandler, queryItem);
         obj.WriteBuffer("Query start\n");
@@ -221,6 +224,9 @@ def main(argv1, argv2):
         # Init database handler
         writeHandler = influxDb.QueryDataBaseInit(writeItem);
 
+        # Check database existance for MDA
+        writeHandler = influxDb.CheckDataBase(writeHandler, writeItem, True, obj);
+
         for i in range(len(modData)):
             for j in range(len(modData[0])):
                 wData = [{'measurement': writeItem['tag'][i], 'time':dbtime[i][j], 'fields': {'systime': time.strftime('%Y-%m-%dT%H:%M:%SZ'), 'deltaPower': float(modData[i][j])}}];
@@ -232,6 +238,8 @@ def main(argv1, argv2):
     except Exception as e:
         exc_type, exc_value, exc_traceback = os.sys.exc_info();
         obj.WriteBuffer("error %s, file: %s, line: %s\n" 
+                        %(type(e).__name__, exc_traceback.tb_frame.f_code.co_filename, exc_traceback.tb_lineno));
+        print("error %s, file: %s, line: %s\n" 
                         %(type(e).__name__, exc_traceback.tb_frame.f_code.co_filename, exc_traceback.tb_lineno));
     # Close the file handler
     obj.Close();
