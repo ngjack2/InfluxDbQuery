@@ -14,7 +14,7 @@ queryEnd = 'T16:00:00Z'
 queryStart = 'T15:59:00Z';
 
 cal= calendar.Calendar()
-x = [x for x in cal.itermonthdates(2019, 12)];
+x = [x for x in cal.itermonthdates(2019, 10)];
 
 for i in range(len(x)):
     strt = x[i].strftime("%Y-%m-%d") + queryEnd;

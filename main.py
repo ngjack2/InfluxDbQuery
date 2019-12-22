@@ -160,7 +160,7 @@ def MatplotQueryData(xData, yData, modData, mda_thres, queryItem):
 #
 # Main program start
 #
-def main(argv1, argv2):
+def main(argv1, argv2, mdaThreshold):
 
     # User Guide to enter date
     #ctypes.windll.user32.MessageBoxW(0, "Please key in the date follow the format given " + queryItem['date'][0], 'Warning', 1);
@@ -205,7 +205,6 @@ def main(argv1, argv2):
         xData, yData, avgPowerPerMachine, totalPowerPerMachine = influxDb.ExtractData(rtime, data, points);
 
         # Change the MDA demand base on user request
-        mdaThreshold = 1000000;
         #modified_total_power = MdaAnalysisDistributePower(xData, yData, mdaThreshold);
 
         # method 2: Calculate minimum MDA usage per day
@@ -257,4 +256,5 @@ if __name__ == "__main__":
     endQuery = today.strftime("%Y-%m-%d") + queryHourEnd;
    
     # run query, MDA and write back to influxDB
-    main(startQuery, endQuery);
+    mdaThreshold = 9000000;
+    main(startQuery, endQuery, mdaThreshold);

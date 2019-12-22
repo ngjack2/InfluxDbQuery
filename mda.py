@@ -28,7 +28,8 @@ def ShuffleDataForMda(data, MdaThreshold):
     machine4 = data[3][0];
     
     count = 0;
-    permutate = list(itertools.permutations([0,1,2,3,4], 4));
+    overTime = list(range(0,10));
+    permutate = list(itertools.permutations(overTime, 4));
     bestData = [machine1, machine2, machine3, machine4];
     for x in permutate:
   
@@ -43,6 +44,7 @@ def ShuffleDataForMda(data, MdaThreshold):
             # initial MDA lower than threshold don't need any improvement
             if (count == 0):
                 return (bestData, count);
+            break;
 
         count += 1;
         machine1 = tuple(RotateList(data[0][0], x[0]));
