@@ -160,7 +160,7 @@ def MatplotQueryData(xData, yData, modData, mda_thres, queryItem):
 #
 # Main program start
 #
-def main(argv1, argv2, mdaThreshold):
+def main(argv1, argv2, mdaThreshold, enable_graph):
 
     # User Guide to enter date
     #ctypes.windll.user32.MessageBoxW(0, "Please key in the date follow the format given " + queryItem['date'][0], 'Warning', 1);
@@ -172,7 +172,7 @@ def main(argv1, argv2, mdaThreshold):
     #     'tag':["kami_machine_Hammer_Mill1_reading", "kami_machine_Hammer_Mill2_reading", "kami_machine_Pellet_Mill1_reading", "kami_machine_Pellet_Mill2_reading"],
     #     'date':['2019-10-02T16:00:00Z','2019-10-03T15:59:00Z']};
     db_param_path = path + '/kami_prod.json';
-    
+
     with open(db_param_path) as pFile:
         queryItem = json.load(pFile);
     # log down the process
@@ -205,14 +205,11 @@ def main(argv1, argv2, mdaThreshold):
         xData, yData, avgPowerPerMachine, totalPowerPerMachine = influxDb.ExtractData(rtime, data, points);
 
         # Change the MDA demand base on user request
-        #modified_total_power = MdaAnalysisDistributePower(xData, yData, mdaThreshold);
+        modified_total_power = MdaAnalysisDistributePower(xData, yData, mdaThreshold);
 
         # method 2: Calculate minimum MDA usage per day
         modData, count = mda.ShuffleDataForMda(yData, mdaThreshold);
         obj.WriteBuffer("ShuffleDataForMda %s\n" %count);
-
-        # plot the data
-        #MatplotQueryData(xData, yData, modData, mdaThreshold, queryItem);
 
         # Init MDA database handler
         #test= { 'measurement':"kami_machine_Hammer_Mill1_reading", 'time':'2019-10-02T16:00:00Z', 'field': { "deltaPower":127 } };
@@ -243,6 +240,10 @@ def main(argv1, argv2, mdaThreshold):
     # Close the file handler
     obj.Close();
 
+    # plot the data
+    if enable_graph == True:
+        MatplotQueryData(xData, yData, modData, mdaThreshold, queryItem);
+
 if __name__ == "__main__":
 
     # format time for one day query
@@ -254,7 +255,9 @@ if __name__ == "__main__":
     today = datetime.date.today();
     startQuery = yesterday.strftime("%Y-%m-%d") + queryHourStart;
     endQuery = today.strftime("%Y-%m-%d") + queryHourEnd;
+    #startQuery = "2019-12-21"+ queryHourStart;
+    #endQuery = "2019-12-22" + queryHourEnd;
    
     # run query, MDA and write back to influxDB
     mdaThreshold = 9000000;
-    main(startQuery, endQuery, mdaThreshold);
+    main(startQuery, endQuery, mdaThreshold, enable_graph = False);

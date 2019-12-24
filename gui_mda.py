@@ -15,6 +15,7 @@ class MdaGui:
         self.date = datetime.date.today();
         self.radioValue = 1;
         self.mdaThreshold = None;
+        self.checkButton = False;
         handler.title("MDA Analysis GUI");
         handler.geometry('350x100');
 
@@ -30,6 +31,10 @@ class MdaGui:
         self.button = tkinter.Button(window, text='Run', width=10, command=self.Run_Mda_Script);
         self.button.grid(column=3, row=3);
 
+        # check button for graph
+        self.check = tkinter.Checkbutton(window, text = "Graph", variable=checkVar, onvalue=True, offvalue=False);
+        self.check.grid(column=0, row=3);
+
         # radio button to choose date execute or month execute
         self.rad1 = tkinter.Radiobutton(window, text="Month", variable=var, value=1);
         self.rad1.select();
@@ -39,7 +44,7 @@ class MdaGui:
 
         # Calendar
         self.cal = tkcalendar.DateEntry(window, width=12, background='darkblue',
-                        foreground='white', borderwidth=2, year=2010)
+                        foreground='white', borderwidth=2, year=2019)
         self.cal.grid(column=1, row=1);
 
         # MDA Threshold
@@ -59,6 +64,7 @@ class MdaGui:
     def Run_Mda_Script(self):
         self.radioValue = var.get();
         self.mdaThreshold = int(mdaThreshold.get());
+        self.checkButton = checkVar.get();
         queryHourStart = 'T16:00:00Z'
         queryHourEnd = 'T15:59:00Z';
         if self.radioValue == 1:
@@ -71,7 +77,8 @@ class MdaGui:
                 strt = x[i].strftime("%Y-%m-%d") + queryHourStart;
                 end = x[i + 1].strftime("%Y-%m-%d") + queryHourEnd;
                 print(strt, end);
-                main.main(strt, end, self.mdaThreshold);
+                self.checkButton = False;
+                main.main(strt, end, self.mdaThreshold, self.checkButton);
                 if i == (len(x) - 2):
                     break;
         else:
@@ -79,10 +86,11 @@ class MdaGui:
             startQuery = yesterday.strftime("%Y-%m-%d") + queryHourStart;
             endQuery = self.date.strftime("%Y-%m-%d") + queryHourEnd;
 
-            main.main(startQuery, endQuery, self.mdaThreshold);
+            main.main(startQuery, endQuery, self.mdaThreshold, self.checkButton);
 
 window = tkinter.Tk();
 var = tkinter.IntVar();
+checkVar = tkinter.BooleanVar();
 mdaThreshold = tkinter.StringVar(window, value = '1000000')
 mda_gui = MdaGui(window);
 window.mainloop();
