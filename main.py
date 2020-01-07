@@ -170,7 +170,7 @@ def main(argv1, argv2, mdaThreshold, enable_graph):
     # Query setup
     #queryItem = {'hostIp':'10.200.32.12', 'hostPort': 8086, 'user':'mimos', 'passwrd':'mimosian', 'db':"kami", 'item':"deltaPower", 
     #     'tag':["kami_machine_Hammer_Mill1_reading", "kami_machine_Hammer_Mill2_reading", "kami_machine_Pellet_Mill1_reading", "kami_machine_Pellet_Mill2_reading"],
-    #     'date':['2019-10-02T16:00:00Z','2019-10-03T15:59:00Z']};
+    #     'date':['2019-10-02T16:00:00Z','2019-10-03T15:59:00Z']};mat
     db_param_path = path + '/kami_prod.json';
 
     with open(db_param_path) as pFile:
@@ -246,6 +246,12 @@ def main(argv1, argv2, mdaThreshold, enable_graph):
 
 if __name__ == "__main__":
 
+    path = os.path.abspath(os.path.dirname(os.sys.argv[0]));
+    db_param_path = path + '/kami_prod.json';
+
+    with open(db_param_path) as pFile:
+        queryItem = json.load(pFile);
+
     # format time for one day query
     queryHourStart = 'T16:00:00Z'
     queryHourEnd = 'T15:59:00Z';
@@ -259,5 +265,4 @@ if __name__ == "__main__":
     #endQuery = "2019-12-22" + queryHourEnd;
    
     # run query, MDA and write back to influxDB
-    mdaThreshold = 9000000;
-    main(startQuery, endQuery, mdaThreshold, enable_graph = False);
+    main(startQuery, endQuery, queryItem['threshold'], enable_graph = False);

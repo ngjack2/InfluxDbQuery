@@ -32,6 +32,7 @@ def CheckDataBase(handler, queryItem, create_db, obj):
     for db in db_list:
         if queryItem['db'] == db['name']:
             handler.switch_database(db['name']);
+            print(db['name']);
             obj.WriteBuffer("Log %s database\n" %db['name']);
             return handler;
 
