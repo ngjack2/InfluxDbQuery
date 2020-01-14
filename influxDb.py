@@ -46,19 +46,19 @@ def CheckDataBase(handler, queryItem, create_db, obj):
 
 #
 # Close the http connection created
-#ty
+#
 def CloseConnection(connection):
     InfluxDBClient.close(connection);
 
 #
 # Query the item from list
-##result = connection.query('SELECT "deltaPower" FROM
-##"kami_machine_Hammer_Mill1_reading" GROUP BY * ORDER BY DESC LIMIT 3');
+#
 def QueryDatabase(handler, queryItem):
     points = [];
     for x in range(4):
         queryStatement = ('SELECT sum(%s) FROM %s '
-                          'WHERE time > \'%s\' AND time < \'%s\' GROUP BY time(30m) fill(0) tz(\'Asia/Singapore\')' % (queryItem['item'], queryItem['tag'][x], queryItem['date'][0], queryItem['date'][1]));
+                          'WHERE time > \'%s\' AND time < \'%s\' GROUP BY time(30m) fill(0) tz(\'Asia/Singapore\')'
+                          % (queryItem['item'], queryItem['tag'][x], queryItem['date'][0], queryItem['date'][1]));
 
         result = handler.query(queryStatement);
         points.append(result.get_points(queryItem['tag'][x]));
