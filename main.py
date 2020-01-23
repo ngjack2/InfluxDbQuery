@@ -159,7 +159,7 @@ def main(argv1, argv2, mdaThreshold, enable_graph):
         modData, count, success = mda.ShuffleDataForMda(yData, mdaThreshold);
         newMdaOperationHour, oldMdaOperationHour, newMdaData, oldMdaData = mda.Calculate_Operation_Hours(yData,
                                                                                                          modData);
-        obj.WriteBuffer("ShuffleDataForMda %s, result %s\n" % (count, success));
+        obj.WriteBuffer("ShuffleDataForMda %s, result %s, dbtime %s\n" % (count, success, dbtime[0][0]));
 
         # Init MDA database handler
         db_param_path = path + '/kami_mda.json';
@@ -179,7 +179,7 @@ def main(argv1, argv2, mdaThreshold, enable_graph):
         mdaNewPower = var2.tolist();
 
         mdaStatus = "Failed" if success == False else "Pass";
-        mdaData = [{'measurement': 'mdaTable', 'time': dbtime[0][0],
+        mdaData = [{'measurement': 'mdaTable', 'time': dbtime[0][1],
                     'fields': {'systime': time.strftime('%Y-%m-%dT%H:%M:%SZ'),
                                'threshold': float(mdaThreshold), 'mdaOrig': float(max(mdaOrigPower)),
                                'mdaNew': float(max(mdaNewPower)),
@@ -232,4 +232,4 @@ if __name__ == "__main__":
     #endQuery = "2020-01-10" + queryHourEnd;
 
     # run query, MDA and write back to influxDB
-    main(startQuery, endQuery, queryItem['threshold'], enable_graph=False);
+    main(startQuery, endQuery, queryItem['grafana']['threshold'], enable_graph=False);

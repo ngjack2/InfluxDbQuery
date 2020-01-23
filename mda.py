@@ -64,7 +64,7 @@ def RotateList(data, n):
 
 
 #
-#
+# Compute permutation and sanity check on data
 #
 def ComputePermutation(bestData, MdaThreshold):
 
@@ -80,6 +80,8 @@ def ComputePermutation(bestData, MdaThreshold):
     overTime = list(range(0, 48 - totalHours));
     permutate = list(itertools.permutations(overTime, 4));
     return permutate;
+
+
 #
 # Shuffle the data and calcuate the optimun MDA
 #

@@ -57,8 +57,7 @@ def QueryDatabase(handler, queryItem):
     points = [];
     for x in range(4):
         queryStatement = ('SELECT sum(%s) FROM %s '
-                          'WHERE time > \'%s\' AND time < \'%s\' GROUP BY time(30m) fill(0) tz(\'Asia/Singapore\')'
-                          % (queryItem['item'], queryItem['tag'][x], queryItem['date'][0], queryItem['date'][1]));
+                          'WHERE time > \'%s\' AND time < \'%s\' GROUP BY time(30m) fill(0) tz(\'Asia/Singapore\')' % (queryItem['item'], queryItem['tag'][x], queryItem['date'][0], queryItem['date'][1]));
 
         result = handler.query(queryStatement);
         points.append(result.get_points(queryItem['tag'][x]));

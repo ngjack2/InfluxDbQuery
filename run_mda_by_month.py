@@ -26,31 +26,43 @@ def Scheduler_Mda():
 
         # Read new threshold
         #path = os.path.expanduser('~') + '/grafana-storage/grafana.db';
-        with open(queryItem['grafana_db_path'], "rb") as pFile:
+        with open(queryItem['grafana']['grafana_db_path'], "rb") as pFile:
             temp = pFile.read();
             data = str(temp);
 
         strtIndx = 0;
         while (True):
+            # find the threshold sentence
             strtIndx = data.find("\"thresholds\":[{\"colorMode\"", strtIndx + 1);
-
-            endIndx = data.find("]", strtIndx);
-            buffer = "{" + data[strtIndx:endIndx + 1] + "}";
-
-            titleIndx = data.find("\"title\"", endIndx);
-            titleEnd = data.find(",", titleIndx);
             if strtIndx == -1:
                 break;
-            jsonTemp = json.loads(buffer);
+            endIndx = data.find("]", strtIndx);
 
-            title = "{" + data[titleIndx:titleEnd] + "}";
-            jsonTitle = json.loads(title);
-            if (jsonTitle['title'] == "Analysis MDA"):
-                mdaThreshold = jsonTemp['thresholds'][0]['value'];
+            # find the MDA tile
+            titleIndx = data.find("\"title\"", endIndx);
+            titleEnd = data.find(",", titleIndx);
+            mdaThresholdJson = json.loads("{" + data[strtIndx:endIndx+1] + "," + data[titleIndx:titleEnd] + "}");
+
+            # find the version of the MDA panel
+            verIndx = data.find("\"time\":{", titleEnd);
+            verEnd = data.find("\"version\"", verIndx);
+            verEnd = data.find("}", verEnd);
+
+            # load all the buffer into json format
+            mdaVersionJson = json.loads("{" + data[verIndx:verEnd+1]);
+
+            # check the panel title, and version to update the latest threshold
+            if (mdaThresholdJson['title'] == "Analysis MDA"):
+                if (mdaVersionJson['version'] > queryItem['grafana']['version']):
+                    mdaThreshold = mdaThresholdJson['thresholds'][0]['value'];
+                    queryItem['grafana']['version'] = mdaVersionJson['version'];
 
         # Compare old and new threshold, difference will run MDA analysis
-        if (mdaThreshold != queryItem['threshold']):
-            queryItem['threshold'] = mdaThreshold;
+        if (mdaThreshold != queryItem['grafana']['threshold']):
+
+            queryItem['grafana']['threshold'] = mdaThreshold;
+            queryItem['grafana']['version'] = mdaVersionJson['version'];
+
             with open(db_param_path, "w") as pFile:
                 json.dump(queryItem, pFile);
 
