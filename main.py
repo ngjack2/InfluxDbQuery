@@ -195,6 +195,14 @@ def main(argv1, argv2, mdaThreshold, enable_graph):
                                      'deltaPower': float(modData[i][j])}}];
                 writeHandler.write_points(wData);
 
+        # Write machines total original power and new power into database
+        for i in range(len(mdaOrigPower)):
+            powerData = [{'measurement': 'machineTotalPower', 'time': dbtime[0][i],
+                      'fields': {'systime': time.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                                 'mdaOrigPower': float(mdaOrigPower[i]),
+                                 'mdaNewPower': float(mdaNewPower[i])}}];
+            writeHandler.write_points(powerData);
+
         # Close the http connection
         influxDb.CloseConnection(writeHandler);
 
@@ -228,8 +236,8 @@ if __name__ == "__main__":
     today = datetime.date.today();
     startQuery = yesterday.strftime("%Y-%m-%d") + queryHourStart;
     endQuery = today.strftime("%Y-%m-%d") + queryHourEnd;
-    #startQuery = "2020-01-09" + queryHourStart;
-    #endQuery = "2020-01-10" + queryHourEnd;
+    #startQuery = "2020-01-27" + queryHourStart;
+    #endQuery = "2020-01-28" + queryHourEnd;
 
     # run query, MDA and write back to influxDB
     main(startQuery, endQuery, queryItem['grafana']['threshold'], enable_graph=False);

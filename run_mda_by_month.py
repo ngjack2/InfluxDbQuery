@@ -23,6 +23,7 @@ def Scheduler_Mda():
         db_param_path = path + '/kami_prod.json';
         with open(db_param_path) as pFile:
             queryItem = json.load(pFile);
+            mdaThreshold = queryItem['grafana']['threshold'];
 
         # Read new threshold
         #path = os.path.expanduser('~') + '/grafana-storage/grafana.db';
@@ -38,15 +39,21 @@ def Scheduler_Mda():
                 break;
             endIndx = data.find("]", strtIndx);
 
+            # find value words
+            strBuffer = data[strtIndx:endIndx+1];
+            valueIndx = strBuffer.find("\"value\"");
+            valueEnd = strBuffer.find(",", valueIndx);
+
             # find the MDA tile
             titleIndx = data.find("\"title\"", endIndx);
             titleEnd = data.find(",", titleIndx);
-            mdaThresholdJson = json.loads("{" + data[strtIndx:endIndx+1] + "," + data[titleIndx:titleEnd] + "}");
+            mdaThresholdJson = json.loads("{" + strBuffer[valueIndx:valueEnd+1] + data[titleIndx:titleEnd] + "}");
 
             # find the version of the MDA panel
             verIndx = data.find("\"time\":{", titleEnd);
-            verEnd = data.find("\"version\"", verIndx);
-            verEnd = data.find("}", verEnd);
+            verIndx = data.find("\"title\":", verIndx);
+            verIndx = data.find("\"version\"", verIndx);
+            verEnd = data.find("}", verIndx);
 
             # load all the buffer into json format
             mdaVersionJson = json.loads("{" + data[verIndx:verEnd+1]);
@@ -54,7 +61,7 @@ def Scheduler_Mda():
             # check the panel title, and version to update the latest threshold
             if (mdaThresholdJson['title'] == "Analysis MDA"):
                 if (mdaVersionJson['version'] > queryItem['grafana']['version']):
-                    mdaThreshold = mdaThresholdJson['thresholds'][0]['value'];
+                    mdaThreshold = mdaThresholdJson['value'];
                     queryItem['grafana']['version'] = mdaVersionJson['version'];
 
         # Compare old and new threshold, difference will run MDA analysis
